@@ -5,3 +5,8 @@ Definition of the predominant noises in ECG (MA,BW,PLI) causes and effect : http
 Definition and explication of the following noises (EMA,EMG) : https://d1wqtxts1xzle7.cloudfront.net/78281014/Signal-Processing-libre.pdf?1641546359=&response-content-disposition=inline%3B+filename%3DSignal_Processing_Techniques_for_Removin.pdf&Expires=1745068099&Signature=MHK9A374D7HSnKX6qAqd27o4zuWFRTmJM5HLZ41fjC23vyiAAYFurjD9qxIQfqKLoPDyCrussGGfxhmMuV9u2VvDn-YxKEbnI3P~7cr-QuTcX3i2JIT6XmYNdYsZobNlTP4psyVl11~xpLsNsMfFp4uMLM9~ac4p-ijl8ZsniTeolP72tamozeqU4mLU1lKFCnfr40mztlxyfwjomDHzHcRAgH0heY014aVsgm4w1czUaPgn6NW~Fq~WRwQDyRvh24t4WIu1QdjIHNmo7K0nMGTHGzR8a~z10k1IqYyChKaDmTqQ7RnKzzt41gIV4w-7Hry0vnfXaYLnq62kZMEUSg__&Key-Pair-Id=APKAJLOHF5GGSLRBV4ZA
 
 Definition and explication on main noises (page 15) : https://d1wqtxts1xzle7.cloudfront.net/30707535/ECG_book_ch3-libre.pdf?1392083461=&response-content-disposition=inline%3B+filename%3DECG_statistics_noise_artifacts_and_missi.pdf&Expires=1745068723&Signature=SPzsbJRJF9mQAat8tv7GVnBDI5hT5gmEN1gHfL4Xv1ubGjDhflt3gUjuGhtq5ghBvZ-aGHZ8XxoiTBa0VZWF1rLLkWoso2dCZ7TrVJRJRKAuuYD6WYNxzSVmIo3Xka5Qp0ykkHNC9HCfuMqqUY~s8DxVbnWkRrm8U9ulwL37HruWIEyUi~K6SriP9G3rw-izzp2zg~Re7PRI7w8WMK4T5XBGJFIDFAz9~HQpAjR~zJLZ6MNUOJvPVVOahTDQwKaio~SJY1sg6LXooTKv3hR-Fdh5CrT8JZJod83Mz1EP-AGspbdjw5bcipzkWrLQeSR2kLyyTHbvKW3RnDy4VU3PIw__&Key-Pair-Id=APKAJLOHF5GGSLRBV4ZA
+
+Sinusoidal signal : https://fr.wikipedia.org/wiki/Signal_sinuso%C3%AFdal
+
+BW simulation : https://onlinelibrary.wiley.com/doi/full/10.1155/2017/9295029
+
