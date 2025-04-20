@@ -106,3 +106,9 @@ Make sure to follow the steps to be able to run the project  :
     source .env/bin/activate
     pip install -r requirements.txt
     ```
+    
+2. Download the database and add the `records100` and `records500` folders to `src/data/`. Then run: 
+    ```bash
+    python3 src/data.py
+    ```
+   This will extract the data from the original dataset and save it as `npz` files.
