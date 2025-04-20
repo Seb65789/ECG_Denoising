@@ -2,6 +2,11 @@
 
 ## 1. Main Goal
 
+In order to measure the power of the noise simulated and added to the current signals we are going to use the Signal-to-Noise Ratio (SNR). This measure is defined as the ration of signal power over the noise power and it is measured in decibels.
+
+$$SNR = \frac{P_{signal}}{P_{noise}} $$
+$$\implies {SNR}_{dB} = 10\log _{10}(SNR)$$
+
 ## 2. Type of noise in ECGs
 
 In this section, we will describe all the predominant types of noise in ECG signals, and we will use the sinusoidal signal formula to simulate them:
