@@ -13,6 +13,12 @@ https://d1wqtxts1xzle7.cloudfront.net/30707535/ECG_book_ch3-libre.pdf?1392083461
 Sinusoidal signal : OK !
 https://fr.wikipedia.org/wiki/Signal_sinuso%C3%AFdal
 
+SNR : OK !
+https://en.wikipedia.org/wiki/Signal-to-noise_ratio
+
+signal power (page 13) : OK!
+https://www.laurentoudre.fr/tns/TNS2_hand.pdf
+
 BW simulation : OK !
 https://onlinelibrary.wiley.com/doi/full/10.1155/2017/9295029
 

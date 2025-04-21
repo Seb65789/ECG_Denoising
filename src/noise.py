@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 os.chdir('src/')
 
-def get_PLI_noise(x,SNR_dB):
+def get_PLI_noise(x,noise_power):
     '''
     Generates PLI noise with a frequency of 50 Hz to be added to the input signal x.
 
@@ -17,12 +17,6 @@ def get_PLI_noise(x,SNR_dB):
     Returns:
         numpy array: PLI noise with the same length as x.
     '''
-    # Calculate the power of the input signal
-    P_signal = np.mean(x ** 2)
-
-    # Calculate the noise power based on the desired SNR
-    P_noise = P_signal / (10 ** (SNR_dB / 10))
-
     # Generate a time vector from 0 to 10 seconds with len(x) points
     t = np.linspace(0, 10, len(x))  
     
@@ -32,9 +26,9 @@ def get_PLI_noise(x,SNR_dB):
     # Generate the PLI noise signal
     pli_noise = np.sin(2 * np.pi * 50 * t + phase_noise)
 
-    return pli_noise * np.sqrt(P_noise / np.mean(pli_noise ** 2))
+    return pli_noise * np.sqrt(noise_power / np.mean(pli_noise ** 2))
 
-def get_BW_noise(x,SNR_dB):
+def get_BW_noise(x,noise_power):
     '''
     Generates Baseline Wander (BW) noise to be added to the input signal x.
 
@@ -64,15 +58,9 @@ def get_BW_noise(x,SNR_dB):
     for k in range(Num_sinusoidal):
         bw_noise += a_k[k] * np.cos(2 * np.pi * k * delta_f * t + phase_noise[k])
 
-    # Calculate the power of the input signal
-    P_signal = np.mean(x ** 2)
+    return bw_noise * np.sqrt(noise_power / np.mean(bw_noise ** 2))
 
-    # Calculate the noise power based on the desired SNR
-    P_noise = P_signal / (10 ** (SNR_dB / 10))
-    
-    return bw_noise * np.sqrt(P_noise / np.mean(bw_noise ** 2))
-
-def get_EMG_noise(x, SNR_dB):
+def get_EMG_noise(x, noise_power):
     '''
     Generates Electromyographic (EMG) noise to be added to the input signal x.
 
@@ -83,30 +71,21 @@ def get_EMG_noise(x, SNR_dB):
     Returns:
         numpy array: EMG noise with the same length as x.
     '''
-    # Calculate the power of the input signal
-    P_signal = np.mean(x ** 2)
-
-    # Calculate the noise power based on the desired SNR
-    P_noise = P_signal / (10 ** (SNR_dB / 10))
-
     # Generate white Gaussian noise with zero mean and unit variance
     emg_noise = np.random.normal(0, 1, len(x))
 
     # Scale the noise to match the desired noise power
-    emg_noise = emg_noise * np.sqrt(P_noise / np.mean(emg_noise ** 2))
+    emg_noise = emg_noise * np.sqrt(noise_power / np.mean(emg_noise ** 2))
 
     return emg_noise
 
-def get_white_gaussian_noise(x, SNR_dB):
+def get_white_gaussian_noise(x, noise_power):
 
-    signal_power = np.mean(x**2)
-    SNR_linear = 10**(SNR_dB / 10)
-    noise_power = signal_power / SNR_linear
     noise = np.random.normal(0, np.sqrt(noise_power), len(x))
 
     return noise
 
-def get_EMA_noise(x, SNR_dB):
+def get_EMA_noise(x, noise_power):
     '''
     Adds random artifacts to the input signal x.
 
@@ -116,9 +95,6 @@ def get_EMA_noise(x, SNR_dB):
     Returns:
         numpy array: Signal with added random artifacts.
     '''
-    
-    P_signal = np.mean(x ** 2)
-    P_noise_total = P_signal / (10 ** (SNR_dB / 10))
 
     ema_noise = np.zeros_like(x)
 
@@ -138,100 +114,91 @@ def get_EMA_noise(x, SNR_dB):
         # Add the artifact (random Gaussian noise) to the signal
         ema_noise[start_idx:start_idx + duration] +=  np.random.normal(0, 1, duration) #over 50-250 samples
 
-    P_per_sample = P_noise_total / total_duration
+    power_per_sample = noise_power / total_duration
 
     if np.mean(ema_noise ** 2) == 0:
         return ema_noise  # return as is (all zeros)
 
-    return ema_noise * np.sqrt(P_per_sample / np.mean(ema_noise** 2))
+    return ema_noise * np.sqrt(power_per_sample / np.mean(ema_noise** 2))
 
-def get_random_combination_dB(target_dB):
+def get_random_combination_weights(n=5):
+    weights = np.random.rand(n)
+    return weights / np.sum(weights)
+
+def plot_signal(signal,name = "signal") :
+
+    # Nombre de canaux
+    num_channels = 12
+
+    # Créer une figure avec un sous-graphe pour chaque canal
+    fig, axes = plt.subplots(12, 1, figsize=(10, 2 * 12))  # Ajuste la taille de la figure
+
+    # Pour chaque canal, afficher son signal
+    for i in range(num_channels):
+        axes[i].plot(signal[:, i], label=f'Canal {i + 1}')
+        axes[i].set_title(f'Canal {i + 1}')
+        axes[i].set_xlabel('Temps')
+        axes[i].set_ylabel('Amplitude')
+        axes[i].legend()
+
+    # Ajuster l'espacement entre les subplots
+    plt.tight_layout()
+    plt.savefig(f'{name}_test.pdf')
+
+def apply_noises(x, snr_dB):
+    '''
+    Applies multiple types of noise to the input signal x and adjusts the total noise power 
+    to match the target SNR.
+
+    Parameters:
+        x (numpy array): Input signal.
+        snr_dB (float): Desired Signal-to-Noise Ratio in decibels.
+
+    Returns:
+        tuple: Noisy signal and total noise.
+    '''
+    # Weights
+    weights = get_random_combination_weights()
+
+    snr_dB -= 1
+
+    # Calculate the power of the input signal
+    signal_power = np.mean(x ** 2)
+
+    # Calculate the total noise power based on the target SNR
+    total_noise_power = signal_power / (10**(snr_dB / 10))
+
+    # Distribute the total noise power according to the weights
+    P_individual_noises = [w * total_noise_power for w in weights]
+
+    # Generate noises with their specific power
+    pli = get_PLI_noise(x, P_individual_noises[0])
+    bw = get_BW_noise(x, P_individual_noises[1])
+    emg = get_EMG_noise(x, P_individual_noises[2])
+    wgn = get_white_gaussian_noise(x, P_individual_noises[3])
+    ema = get_EMA_noise(x, P_individual_noises[4])
+
+    # Combine all noises
+    total_noise = pli + bw + emg + wgn + ema
+    noise_snr = calculate_snr(x,total_noise)
+    print("Target Noise SNR level : {} | Noise SNR level : {:.4f}".format(snr_dB+1,noise_snr))
+
+    # Add the total noise to the signal
+    x_noisy = x + total_noise
 
 
-    # Génère toutes les combinaisons possibles avec remplacement dans l'intervalle donné
-    all_combinations = [
-        comb for comb in itertools.product(range(2, target_dB + 1), repeat=5)
-        if np.mean(comb) == target_dB
-    ]
+    return x_noisy
 
-    if not all_combinations:
-        raise ValueError("No combinaison found")
-
-    return list(random.choice(all_combinations))
-
-
-def apply_noises(x, snr_list):
+def calculate_snr(signal, noise):
+    power_noise = np.mean(noise**2)
     
-    # List of noise types
-    noise_functions = [
-        get_PLI_noise,  # PLI noise (50 Hz)
-        get_BW_noise,   # Baseline Wander (BW) noise
-        get_EMG_noise,  # EMG noise
-        get_white_gaussian_noise,  # White Gaussian noise
-        get_EMA_noise   # EMA noise
-    ]
+    power_signal = np.mean(signal**2)
     
-    # Loop through each noise type and apply it to the signal
-    for i, snr_db in enumerate(snr_list):
-        if i < len(noise_functions):  # Make sure the index is within the noise function list
-            noise_func = noise_functions[i]
-            x += noise_func(x, snr_db)
+    snr = 10 * np.log10(power_signal / power_noise)
     
-    return x
-
-
-ecg = wfdb.rdrecord('data/records500/00000/00001_hr')
-signal = ecg.p_signal
-flat_signal = signal.flatten('F')
-
-
-comb_dB = get_random_combination_dB(6)
-print(comb_dB)
-
-noisy_signal = flat_signal + apply_noises(flat_signal,comb_dB) 
-print(noisy_signal.shape)
-noisy_signal = noisy_signal.reshape((5000,12),order = 'F')
+    return snr
 
 
 
 
-# Nombre de canaux
-num_channels = ecg.p_signal.shape[1]
 
-# Créer une figure avec un sous-graphe pour chaque canal
-fig, axes = plt.subplots(num_channels, 1, figsize=(10, 2 * num_channels))  # Ajuste la taille de la figure
-
-# Pour chaque canal, afficher son signal
-for i in range(num_channels):
-    axes[i].plot(ecg.p_signal[:, i], label=f'Canal {i + 1}')
-    axes[i].set_title(f'Canal {i + 1}')
-    axes[i].set_xlabel('Temps')
-    axes[i].set_ylabel('Amplitude')
-    axes[i].legend()
-
-# Ajuster l'espacement entre les subplots
-plt.tight_layout()
-
-# Afficher les signaux
-plt.savefig('clear_signal_test.pdf')
-
-
-# Nombre de canaux
-num_channels = ecg.p_signal.shape[1]
-
-# Créer une figure avec un sous-graphe pour chaque canal
-fig, axes = plt.subplots(num_channels, 1, figsize=(10, 2 * num_channels))  # Ajuste la taille de la figure
-
-# Pour chaque canal, afficher son signal
-for i in range(num_channels):
-    axes[i].plot(noisy_signal[:, i], label=f'Canal {i + 1}')
-    axes[i].set_title(f'Canal {i + 1}')
-    axes[i].set_xlabel('Temps')
-    axes[i].set_ylabel('Amplitude')
-    axes[i].legend()
-
-# Ajuster l'espacement entre les subplots
-plt.tight_layout()
-
-# Afficher les signaux
-plt.savefig('noisy_signal_test.pdf')
