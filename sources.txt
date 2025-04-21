@@ -22,3 +22,6 @@ https://www.laurentoudre.fr/tns/TNS2_hand.pdf
 BW simulation : OK !
 https://onlinelibrary.wiley.com/doi/full/10.1155/2017/9295029
 
+Autoencoders : 
+https://medium.com/@ompramod9921/autoencoders-explained-9196c38af6f6
+https://medium.com/game-of-bits/denoising-autoencoders-can-reduce-noise-in-images-5b74753eaf97
