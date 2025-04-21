@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 
 import torch
 
-class DAEDataset(torch.utils.data.Dataset):
+class ECGDataset(torch.utils.data.Dataset):
     def __init__(self,vrs = 100) :
 
         data = np.load(f'data/{vrs}/clear.npz')
