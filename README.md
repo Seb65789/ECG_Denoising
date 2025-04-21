@@ -75,12 +75,12 @@ It is said that this **noise** can be simulated by a **gaussian distribution** w
 
 #### 2.2.1 Electrode Motion Artifact 
 
-**Electrode Motion Artifact (EMA) noise** is primarily caused by skin stretching, which modifies the electrode-skin impedance. This noise typically occurs during ambulatory ECGs. Its appearance is **similar to baseline wander (BW) noise** but with **larger amplitude** waveforms, and it occurs in the frequency range of **1 Hz to 10 Hz**.
+**Electrode Motion Artifact (EMA) noise** is primarily caused by skin stretching, which modifies the electrode-skin impedance. This noise typically occurs during ambulatory ECGs. Its appearance is **similar to baseline wander (BW) noise** but with **larger amplitude** waveforms, and it occurs in the frequency range of **1 Hz to 10 Hz** for 0.5 seconds.
 
 #### 2.2.2 Electrode Popup 
 
 **Electrode pop-up noise** occurs due to variations in the position of the heart relative to the electrodes and changes in the medium between them. This noise is typically caused by an electrode being completely or nearly detached, or by patient movements.
-It is characterized by sudden changes in the amplitude of the ECG signal, as well as low-frequency baseline shifts caused by variations in electrode-skin impedance. The higher the electrode-skin impedance, the more even small changes in impedance can lead to significant baseline shifts.
+It is characterized by sudden changes in the amplitude of the ECG signal for periods of 1 second, as well as low-frequency baseline shifts caused by variations in electrode-skin impedance. The higher the electrode-skin impedance, the more even small changes in impedance can lead to significant baseline shifts.
 
 #### 2.2.3 Instrumentation Noise
 
@@ -106,7 +106,7 @@ Make sure to follow the steps to be able to run the project  :
     source .env/bin/activate
     pip install -r requirements.txt
     ```
-    
+
 2. Download the database and add the `records100` and `records500` folders to `src/data/`. Then run: 
     ```bash
     python3 src/data.py
