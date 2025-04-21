@@ -181,7 +181,7 @@ def apply_noises(x, snr_dB):
     # Combine all noises
     total_noise = pli + bw + emg + wgn + ema
     noise_snr = calculate_snr(x,total_noise)
-    print("Target Noise SNR level : {} | Noise SNR level : {:.4f}".format(snr_dB+1,noise_snr))
+    #print("Target Noise SNR level : {} | Noise SNR level : {:.4f}".format(snr_dB+1,noise_snr))
 
     # Add the total noise to the signal
     x_noisy = x + total_noise

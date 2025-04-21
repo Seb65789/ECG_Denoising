@@ -1,42 +1,67 @@
 import wfdb
 import numpy as np
-import matplotlib.pyplot as plt
-import wfdb.plot
 import os
 import noise 
 from collections import Counter
+from sklearn.model_selection import train_test_split
 
+import torch
 
+class DAEDataset(torch.utils.data.Dataset):
+    def __init__(self,data,data_noisy) :
+        train_X = data_noisy["train"]
+        train_y = data["train"]
+        val_X = data_noisy["val"]
+        val_y = data["val"]
+        test_X = data_noisy["test"]
+        test_y = data["test"]
+
+        self.X = torch.tensor(train_X)
+        self.y = torch.tensor(train_y)
+
+        self.val_X = torch.tensor(val_X)
+        self.val_y = torch.tensor(val_y)
+
+        self.test_X = torch.tensor(test_X)
+        self.val_y = torch.tensor(test_y)
+    
+    def __len__(self):
+        return len(self.X)
+    
+    def __getitem__(self,idx):
+        return self.X[idx],self.y[idx]
 
 
 def get_snr_distribution(total_samples):
-    snr_values = np.arange(0,32,2)
-    print(snr_values)
+    snr_values = np.arange(0, 32, 2)
     # Séparer les valeurs par intervalle
     snr_low = snr_values[snr_values <= 10]       # [0, 2, 4, 6, 8, 10]
     snr_mid = snr_values[(snr_values > 10) & (snr_values <= 20)]  # [12, 14, 16, 18, 20]
     snr_high = snr_values[snr_values > 20]       # [22, 24, 26, 28, 30]
 
     # Définir le nombre d'échantillons
-    n_noisy = int(0.7 * total_samples)
+    n_noisy = total_samples
     n_low = int(0.25 * n_noisy)
     n_mid = int(0.5 * n_noisy)
-    n_high = n_noisy - n_low - n_mid  # to get 100% of the 70%
+    n_high = n_noisy - n_low - n_mid  # pour obtenir 100% des 70%
 
     # Générer les SNRs aléatoirement dans chaque plage
-    snr_list = []
-    snr_list += np.zeros((total_samples-n_noisy)).tolist()
-    snr_list += list(np.random.choice(snr_low, n_low, replace=True))
-    snr_list += list(np.random.choice(snr_mid, n_mid, replace=True))
-    snr_list += list(np.random.choice(snr_high, n_high, replace=True))
+    snr_low_samples = np.random.choice(snr_low, n_low, replace=True)
+    snr_mid_samples = np.random.choice(snr_mid, n_mid, replace=True)
+    snr_high_samples = np.random.choice(snr_high, n_high, replace=True)
 
-    # Shuffle la liste pour la rendre bien répartie
-    np.random.shuffle(snr_list)
+    # Créer un tableau numpy avec les SNRs
 
-    return snr_list
+    snr_array = np.concatenate([snr_low_samples, snr_mid_samples, snr_high_samples])
 
+    # Mélanger la liste pour la rendre bien répartie
+    np.random.shuffle(snr_array)
+
+    return snr_array
 
 def main():
+
+    print(torch.cuda.is_available())
 
     # Create the datasets if they don't exists
     if not(os.path.exists('data/records100/ecg100.npz') and os.path.exists('data/records500/ecg500.npz')) :
@@ -70,20 +95,59 @@ def main():
 
     data_100 = X_100['data']
     data_500 = X_500['data']
-    
+
+    data_100_noisy = data_100.copy()
+    data_500_noisy = data_500.copy()
+
     snr_list_100 = get_snr_distribution(data_100.shape[0])
     snr_list_500 = get_snr_distribution(data_500.shape[0])
 
-    print(len(snr_list_100))
-    print(len(snr_list_500))
-    snr_counts = Counter(snr_list_100)
+    snr_counts_100 = Counter(snr_list_100)
+    snr_counts_500 = Counter(snr_list_500)
 
-    # Afficher proprement
-    print("Répartition des niveaux SNR :")
-    for snr_level in sorted(snr_counts):
-        print(f"SNR {snr_level} dB : {snr_counts[snr_level]} occurrences")
+    print(len(snr_counts_100))
+    print(len(snr_counts_500))
+
+    print("SNR levels repartition for datasets:")
+    print("\nFor dataset 100:")
+    for snr_level, count in sorted(snr_counts_100.items()):
+        print(f"SNR {snr_level} dB : {count} occurrences")
+
+    print("\nFor dataset 500:")
+    for snr_level, count in sorted(snr_counts_500.items()):
+        print(f"SNR {snr_level} dB : {count} occurrences")
 
 
+    for i in range(len(snr_list_100)) :
+        if i % 1000 == 0 : print(i)
+        data_100_noisy[i] += noise.apply_noises(data_100_noisy[i],snr_dB=snr_list_100[i])
+        data_500_noisy[i] += noise.apply_noises(data_500_noisy[i],snr_dB=snr_list_500[i])
+    
+    # Splitting into train test val datasets
+    train_100_noisy, test_100_noisy, train_100_clear, test_100_clear = train_test_split(data_100_noisy, data_100, test_size=0.10, shuffle=True)
+    train_100_noisy, val_100_noisy, train_100_clear, val_100_clear= train_test_split(train_100_noisy,train_100_clear, test_size=0.10, shuffle=True) 
+    
+    print(f"Noisy : \nTrain 100: {train_100_clear.shape}, Val 100: {val_100_clear.shape}, Test 100: {test_100_clear.shape}")
+    print(f"Noisy : \nTrain 100: {train_100_noisy.shape}, Val 100: {val_100_noisy.shape}, Test 100: {test_100_noisy.shape}")
 
+    # Splitting into train test val datasets
+    train_500_noisy, test_500_noisy, train_500_clear, test_500_clear = train_test_split(data_500_noisy, data_500, test_size=0.10, shuffle=True)
+    train_500_noisy, val_500_noisy, train_500_clear, val_500_clear= train_test_split(train_500_noisy,train_500_clear, test_size=0.10, shuffle=True) 
+    
+    print(f"Noisy : \nTrain 500: {train_500_clear.shape}, Val 500: {val_500_clear.shape}, Test 500: {test_500_clear.shape}")
+    print(f"Noisy : \nTrain 500: {train_500_noisy.shape}, Val 500: {val_500_noisy.shape}, Test 500: {test_500_noisy.shape}")
+
+    # Save
+    os.makedirs("data/100", exist_ok=True)
+    os.makedirs("data/500", exist_ok=True)
+
+    np.savez_compressed("data/100/noisy.npz", train=train_100_noisy,val=val_100_noisy,test=test_100_noisy)
+    np.savez_compressed("data/100/clear.npz", train=train_100_clear,val=val_100_clear,test=test_100_clear)
+    
+    np.savez_compressed("data/500/noisy.npz", train=train_500_noisy,val=val_500_noisy,test=test_500_noisy)
+    np.savez_compressed("data/500/clear.npz", train=train_500_clear,val=val_500_clear,test=test_500_clear)
+
+
+        
 if __name__ == '__main__' :
     main()
