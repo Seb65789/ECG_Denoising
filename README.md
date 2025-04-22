@@ -109,6 +109,22 @@ Make sure to follow the steps to be able to run the project  :
 
 2. Download the database and add the `records100` and `records500` folders to `src/data/`. Then run: 
     ```bash
-    python3 src/data.py
+    python3 src/main.py
     ```
-   This will extract the data from the original dataset and save it as `npz` files.
+   This will extract the data from the original dataset and save it as `npz` files and start the training with the choosen running mode.
+
+3. Run the project with one of these options:
+    - **Try mode** : Customize and train a model according to your options. 
+    ```bash
+    python3 main.py -mode try -other_options
+    ```
+    
+    - **Search mode** : Custom GridSearch that searchs the best parameters to optimize the model
+    ```bash
+    python3 main.py -mode search 
+    ```
+
+    - **Best mode** : Loads the best model and runs it on the Test dataset
+    ```bash
+    python3 main.py -mode best
+    ```

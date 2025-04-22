@@ -74,10 +74,10 @@ def train(dataset,X_val,y_val,X_test,y_test,nb_epochs,batch_size,optimizer,lr,la
     epochs = torch.arange(1,nb_epochs+1)
 
 
-    if mode == "try" :
+    if not(mode == "search") :
         init_loss,init_snr_x,init_snr_y = evaluate(model,criterion,X_val,y_val)        
         print("Initial validation loss : {:.4f} | Noisy SNR level : {:.4f} | DeNoisy SNR level : {:.4f} ".format(init_loss,init_snr_x,init_snr_y)) 
-    if mode == "try" :
+    if not(mode == "search") :
     # Performances
         train_losses = []
         val_losses = []
@@ -98,8 +98,8 @@ def train(dataset,X_val,y_val,X_test,y_test,nb_epochs,batch_size,optimizer,lr,la
                             y=y_batch,
                             optimizer=optim
                             ,criterion=criterion)
-            if mode == "try" : epoch_loss_train.append(loss) # add loss
-        if mode == "try" :
+            if not(mode == "search") : epoch_loss_train.append(loss) # add loss
+        if not(mode == "search") :
             epoch_loss_train = torch.tensor(epoch_loss_train).mean().item() # Mean loss
             
             epoch_loss_val, epoch_val_snr_x, epoch_val_snr_y = evaluate(model,criterion,X_val,y_val)
@@ -116,7 +116,7 @@ def train(dataset,X_val,y_val,X_test,y_test,nb_epochs,batch_size,optimizer,lr,la
     print("Training took {} minutes and {} seconds".format(minutes,seconds))
     
     test_loss,test_snr_x,test_snr_y = evaluate(model,criterion,X_test,y_test)
-    if mode == "try" : 
+    if not(mode == "search") : 
         print(f"Test loss : {test_loss} | Test Noisy SNR : {test_snr_x} | Test DeNoisy SNR : {test_snr_y}")
 
         # Saving the results
@@ -156,6 +156,9 @@ def train(dataset,X_val,y_val,X_test,y_test,nb_epochs,batch_size,optimizer,lr,la
         plot_signal(y_test.detach().cpu().numpy().T,
                     x_test.detach().cpu().numpy().T,
                     name = f'results/{vrs}/clear_noisy')
+        
+        if mode == 'best' :
+            torch.save(model.state_dict(), "results/{vrs}/best_model_weights.pth")
     
     return test_loss,test_snr_y
 

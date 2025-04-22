@@ -1,14 +1,9 @@
 import argparse as parse
-from torch.utils.data import DataLoader
-import os
-import src.data
 from src.data import ECGDataset
 import torch
-import torch.nn as nn
-import time
+import src.data 
+from src.DAE import ECG_DAE
 from src.utils import train
-import matplotlib.pyplot as plt
-from src.noise import plot_signal
 from itertools import product
 import numpy as np
 import pandas as pd
@@ -38,7 +33,7 @@ def main():
     opt = arguments.parse_args()
 
     # Build dataset
-    #src.data.main()
+    src.data.main()
 
     # Loading Dataset
     dataset = ECGDataset(vrs=opt.vrs)
@@ -63,9 +58,9 @@ def main():
         # Custom GridSearch
         param_grid = {
             'lr': np.linspace(0.001,0.1,5).tolist(),
-            'epochs' : [20,50,100,200],
-            'batch_size': [ 64, 128, 256, 512],
-            'optimizer': ['adam', 'sgd'],
+            'epochs' : [20,50,100],
+            'batch_size': [ 64, 128, 256],
+            'optimizer': ['adam'],
             'nb_layers': [2, 4, 6],
             'activation' : ['relu','tanh'],
             'pooling':['avg']
@@ -105,13 +100,8 @@ def main():
         df_results = pd.DataFrame(results)
         df_results.to_csv(f'results/{opt.vrs}/GridSearch_Results.csv', index=False)
         print("GridSearch finished !")
-        
-    if opt.model == 'best' :
 
-        # Upload dataframe
-        df_performances = pd.read_csv(f'results/{opt.vrs}/GridSearch_Results.csv')
-
-        best_configuration = df_performances.loc[df_performances['SNR_dB'].idxmin()]
+        best_configuration = df_results.loc[df_results['SNR_dB'].idxmin()]        
         best_lr = best_configuration['lr']
         best_epochs = best_configuration['epochs']
         best_batch_size = best_configuration['batch_size']
@@ -123,8 +113,31 @@ def main():
         train(dataset=dataset,X_val=X_val,y_val=y_val,X_test=X_test,y_test=y_test,
               nb_epochs=best_epochs,batch_size=best_batch_size,optimizer=best_optimizer,
               lr=best_lr,layers=best_nb_layers,activation=best_activation,pooling=best_pooling,
-              vrs=opt.vrs,device=device,mode='try')
+              vrs=opt.vrs,device=device,mode='best')
 
+        print("Best Model Saved !")
+        
+    if opt.model == 'best' :
+
+        df_results = pd.read_csv(f'results/{opt.vrs}/GridSearch_Results.csv')
+
+        best_configuration = df_results.loc[df_results['SNR_dB'].idxmin()]        
+        best_lr = best_configuration['lr']
+        best_epochs = best_configuration['epochs']
+        best_batch_size = best_configuration['batch_size']
+        best_optimizer = best_configuration['optimizer']
+        best_nb_layers = best_configuration['nb_layers']
+        best_activation = best_configuration['activation']
+        best_pooling = best_configuration['pooling']
+
+        # Load the model
+        model = ECG_DAE(input=(best_batch_size,12,1000 if opt.vrs == '100' else 5000),
+                        nb_layers=best_nb_layers,
+                        activation_type=best_activation,
+                        pooling_type=best_pooling,mode='try').to(device)
+        
+        model.load_state_dict(torch.load("results/{opt.vrs}/best_model_weights.pth"))
+        model.eval()  # Met le modèle en mode évaluation
 
 if __name__ == '__main__':
     main()
