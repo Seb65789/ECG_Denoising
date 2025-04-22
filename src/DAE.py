@@ -1,9 +1,12 @@
 import torch
 import torch.nn as nn
 import numpy as np
+import time 
+import matplotlib.pyplot as plt
+import os
 
 class ECG_DAE(nn.Module):
-    def __init__(self,input,nb_layers=2,activation_type='tanh',pooling_type='avg',**kwargs):
+    def __init__(self,input,nb_layers=2,activation_type='tanh',pooling_type='avg',mode = 'try',**kwargs):
 
         # The input is already in (batch_size,n_channels,len_signal)
 
@@ -44,9 +47,7 @@ class ECG_DAE(nn.Module):
                             pooling])
         
         self.encoder = nn.Sequential(*encoder_layers) # * to unpack layers
-        print("\n----------------------------------------------------------Encoder----------------------------------------------------------\n",self.encoder)
-        print("---------------------------------------------------------------------------------------------------------------------------")
-
+            
         #bottleneck
         self.bottleneck = nn.Sequential(nn.Conv1d(in_channels=in_out_sizes[-1],
                                                   out_channels=in_out_sizes[-1],
@@ -54,11 +55,7 @@ class ECG_DAE(nn.Module):
                                                   padding=(kernel_sizes[-1]-1)//2)
                                         ,activation,
                                         nn.Upsample(scale_factor=2))
-
-        print("\n-----------------------------------------------------------Bottleneck--------------------------------------------------------\n",self.bottleneck)
-        print("---------------------------------------------------------------------------------------------------------------------------")
-
-
+            
         # reverse the in_out_sizes
         in_out_sizes = in_out_sizes[::-1]
         kernel_sizes = kernel_sizes[::-1]
@@ -78,8 +75,15 @@ class ECG_DAE(nn.Module):
                                          padding=1))
         
         self.decoder = nn.Sequential(*decoder_layers)
-        print("\n----------------------------------------------------------Decoder----------------------------------------------------------\n",self.decoder)
-        print("---------------------------------------------------------------------------------------------------------------------------")
+        if mode == "try" : 
+            print("\n----------------------------------------------------------Encoder----------------------------------------------------------\n",self.encoder)
+            print("---------------------------------------------------------------------------------------------------------------------------")
+
+            print("\n-----------------------------------------------------------Bottleneck--------------------------------------------------------\n",self.bottleneck)
+            print("---------------------------------------------------------------------------------------------------------------------------")
+
+            print("\n----------------------------------------------------------Decoder----------------------------------------------------------\n",self.decoder)
+            print("---------------------------------------------------------------------------------------------------------------------------")
 
 
     def forward(self,x):
@@ -93,6 +97,8 @@ class ECG_DAE(nn.Module):
         x = self.bottleneck(x)
         x = self.decoder(x)
         return x
+    
+ 
 
 def main():
     input = (1,12,1000)

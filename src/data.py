@@ -66,9 +66,8 @@ def get_snr_distribution(total_samples):
     return snr_array
 
 def main():
-
-    # Create the datasets if they don't exists
-    if not(os.path.exists('data/records100/ecg100.npz') and os.path.exists('data/records500/ecg500.npz')) :
+    
+    if not(os.path.exists('data/100/clear.npz') and os.path.exists('data/100/noisy.npz')) :
         data_100 = [
         wfdb.rdrecord(f'data/records100/{str(folder).zfill(5)}/{str(num).zfill(5)}_lr').p_signal.flatten('F')
         for folder in range(0, 22000, 1000)
@@ -76,28 +75,7 @@ def main():
         if os.path.exists(f'data/records100/{str(folder).zfill(5)}/{str(num).zfill(5)}_lr.dat')
         ]
 
-        data_500 = [
-        wfdb.rdrecord(f'data/records500/{str(folder).zfill(5)}/{str(num).zfill(5)}_hr').p_signal.flatten('F')
-        for folder in range(0, 22000, 1000)
-        for num in range(folder + 1, folder + 1000)
-        if os.path.exists(f'data/records500/{str(folder).zfill(5)}/{str(num).zfill(5)}_hr.dat')
-        ]
-
-        X_100 = np.array(data_100)
-        X_500 = np.array(data_500)
-
-        print(X_100.shape)
-        print(X_500.shape)
-
-        np.savez_compressed('data/records100/ecg100.npz',data = X_100)
-        np.savez_compressed('data/records500/ecg500.npz',data = X_500)
-
-        print("Data saved.")
-    
-    if not(os.path.exists('data/100/clear.npz') and os.path.exists('data/100/noisy.npz')) :
-        X_100 = np.load('data/records100/ecg100.npz')
-
-        data_100 = X_100['data']
+        data_100 = np.array(data_100)
 
         data_100_noisy = data_100.copy()
 
@@ -115,7 +93,9 @@ def main():
         for i in range(len(snr_list_100)) :
             if i % 1000 == 0 : print(i)
             data_100_noisy[i] += src.noise.apply_noises(data_100_noisy[i],snr_dB=snr_list_100[i])
-        
+            
+        data_100_noisy = data_100_noisy.astype(np.float32)
+
         # Splitting into train test val datasets
         train_100_noisy, test_100_noisy, train_100_clear, test_100_clear = train_test_split(data_100_noisy, data_100, test_size=0.10, shuffle=True)
         train_100_noisy, val_100_noisy, train_100_clear, val_100_clear= train_test_split(train_100_noisy,train_100_clear, test_size=len(test_100_clear), shuffle=True) 
@@ -131,7 +111,21 @@ def main():
         np.savez_compressed("data/100/noisy.npz", train=train_100_noisy,val=val_100_noisy,test=test_100_noisy)
         np.savez_compressed("data/100/clear.npz", train=train_100_clear,val=val_100_clear,test=test_100_clear)
 
+        print("Data saved.")
+
         ''' Higher model data --use this version to create the 500 dataset
+        if not(os.path.exists('data/records500/ecg500.npz') :
+        
+            data_500 = [
+            wfdb.rdrecord(f'data/records500/{str(folder).zfill(5)}/{str(num).zfill(5)}_hr').p_signal.flatten('F')
+            for folder in range(0, 22000, 1000)
+            for num in range(folder + 1, folder + 1000)
+            if os.path.exists(f'data/records500/{str(folder).zfill(5)}/{str(num).zfill(5)}_hr.dat')
+            ]
+
+            X_500 = np.array(data_500)
+            np.savez_compressed('data/records500/ecg500.npz',data = X_500)
+
         X_500 = np.load('data/records500/ecg500.npz')
         data_500 = X_500['data']
         data_500_noisy = data_500.copy()
