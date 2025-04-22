@@ -128,3 +128,5 @@ Make sure to follow the steps to be able to run the project  :
     ```bash
     python3 main.py -mode best
     ```
+
+**Author :** Sebastian NATI.
