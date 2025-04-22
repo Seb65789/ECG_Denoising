@@ -1,0 +1,71 @@
+
+Training took 1:13 - Final test loss 0.0557
+ Parameters : 
+	 - layers : 2 
+	 --batch_size : 64
+	 -epochs :20 
+	 -learning_rate : 0.001  
+	 -Optimizer : sgd  
+Training took 1:9 - Final test loss 0.0537
+ Parameters : 
+	 - layers : 2 
+	 --batch_size : 64
+	 -epochs :20 
+	 -learning_rate : 0.001  
+	 -Optimizer : sgd  
+Training took 1:10 - Final test loss 0.0544
+ Parameters : 
+	 - layers : 2 
+	 --batch_size : 64
+	 -epochs :20 
+	 -learning_rate : 0.001  
+	 -Optimizer : sgd  
+Training took 1:10 - Final test loss 0.0532
+ Parameters : 
+	 - layers : 2 
+	 --batch_size : 64
+	 -epochs :20 
+	 -learning_rate : 0.001  
+	 -Optimizer : sgd  
+Training took 1:10 - Final test loss 0.0507
+ Parameters : 
+	 - layers : 2 
+	 --batch_size : 64
+	 -epochs :20 
+	 -learning_rate : 0.001  
+	 -Optimizer : sgd  
+Training took 1:10 - Final test loss 0.0537
+ Parameters : 
+	 - layers : 2 
+	 --batch_size : 64
+	 -epochs :20 
+	 -learning_rate : 0.001  
+	 -Optimizer : sgd  
+Training took 1:11 - Final test loss 0.0536
+ Parameters : 
+	 - layers : 2 
+	 --batch_size : 64
+	 -epochs :20 
+	 -learning_rate : 0.001  
+	 -Optimizer : sgd  
+Training took 1:13 - Final test loss 0.0547
+ Parameters : 
+	 - layers : 2 
+	 --batch_size : 64
+	 -epochs :20 
+	 -learning_rate : 0.001  
+	 -Optimizer : sgd  
+Training took 1:12 - Final test loss 0.0550
+ Parameters : 
+	 - layers : 2 
+	 --batch_size : 64
+	 -epochs :20 
+	 -learning_rate : 0.001  
+	 -Optimizer : sgd  
+Training took 1:39 - Final test loss 0.0572
+ Parameters : 
+	 - layers : 4 
+	 --batch_size : 64
+	 -epochs :20 
+	 -learning_rate : 0.001  
+	 -Optimizer : sgd  

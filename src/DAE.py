@@ -53,7 +53,7 @@ class ECG_DAE(nn.Module):
                                                   kernel_size=kernel_sizes[-1],
                                                   padding=(kernel_sizes[-1]-1)//2)
                                         ,activation,
-                                        nn.Upsample(2))
+                                        nn.Upsample(scale_factor=2))
 
         print("\n-----------------------------------------------------------Bottleneck--------------------------------------------------------\n",self.bottleneck)
         print("---------------------------------------------------------------------------------------------------------------------------")
@@ -70,7 +70,7 @@ class ECG_DAE(nn.Module):
                                                   kernel_size=kernel_sizes[layer_i],
                                                   padding=(kernel_sizes[layer_i]-1)//2),
                                         activation,
-                                        nn.Upsample(2))] # 
+                                        nn.Upsample(size=1000) if layer_i == nb_layers - 2 else nn.Upsample(scale_factor=2))] # 
         
         decoder_layers.append(nn.Conv1d(in_channels = in_out_sizes[-2], # Last reconstructing layer
                                          out_channels = in_out_sizes[-1],
@@ -85,8 +85,8 @@ class ECG_DAE(nn.Module):
     def forward(self,x):
         # Check the input dimensions
         batch_size, n_channels, len_signal = x.shape  # This decomposes the shape into 3 dimensions
-        assert n_channels == self.encoder[0].in_channels, f"The expected number of channels is {self.encoder[0].in_channels}, but the input has {n_channels} channels."
-        assert len_signal == self.encoder[0].kernel_size[0], f"The expected signal length is {self.encoder[0].kernel_size[0]}, but the input has {len_signal} values per signal."
+        assert n_channels == 12, f"The expected number of channels is 12, but the input has {n_channels} channels."
+        assert len_signal == 1000 or len_signal == 5000, f"The expected signal length is 1000 or 5000, but the input has values {len_signal} per signal."
 
         
         x = self.encoder(x)

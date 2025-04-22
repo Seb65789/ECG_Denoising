@@ -125,21 +125,20 @@ def get_random_combination_weights(n=5):
     weights = np.random.rand(n)
     return weights / np.sum(weights)
 
-def plot_signal(signal,name = "signal") :
+def plot_signal(signal,signal2 = None,name = "signal") :
 
-    # Nombre de canaux
     num_channels = 12
 
-    # Créer une figure avec un sous-graphe pour chaque canal
-    fig, axes = plt.subplots(12, 1, figsize=(10, 2 * 12))  # Ajuste la taille de la figure
+    fig, axes = plt.subplots(12, 1, figsize=(10, 2 * 12))  
 
-    # Pour chaque canal, afficher son signal
     for i in range(num_channels):
-        axes[i].plot(signal[:, i], label=f'Canal {i + 1}')
+        axes[i].plot(signal[:, i], label='Signal 1', color='blue',linestyle='--')
+        if signal2 is not None:
+            axes[i].plot(signal2[:, i], label='Signal 2', color='orange')
         axes[i].set_title(f'Canal {i + 1}')
         axes[i].set_xlabel('Temps')
         axes[i].set_ylabel('Amplitude')
-        axes[i].legend()
+        axes[i].legend(loc='upper right')
 
     # Ajuster l'espacement entre les subplots
     plt.tight_layout()

@@ -1,7 +1,7 @@
 import wfdb
 import numpy as np
 import os
-import noise 
+import src.noise 
 from collections import Counter
 from sklearn.model_selection import train_test_split
 
@@ -9,9 +9,9 @@ import torch
 
 class ECGDataset(torch.utils.data.Dataset):
     def __init__(self,vrs = 100) :
-
+        
         data = np.load(f'data/{vrs}/clear.npz')
-        data_noisy = np.laod(f'data/{vrs}/noisy.npz')
+        data_noisy = np.load(f'data/{vrs}/noisy.npz')
 
         train_X = data_noisy["train"]
         train_y = data["train"]
@@ -20,20 +20,22 @@ class ECGDataset(torch.utils.data.Dataset):
         test_X = data_noisy["test"]
         test_y = data["test"]
 
-        self.X = torch.tensor(train_X)
-        self.y = torch.tensor(train_y)
+        self.X = torch.tensor(train_X).float()
+        self.y = torch.tensor(train_y).float()
 
-        self.val_X = torch.tensor(val_X)
-        self.val_y = torch.tensor(val_y)
+        self.val_X = torch.tensor(val_X).float()
+        self.val_y = torch.tensor(val_y).float()
 
-        self.test_X = torch.tensor(test_X)
-        self.val_y = torch.tensor(test_y)
+        self.test_X = torch.tensor(test_X).float()
+        self.test_y = torch.tensor(test_y).float()
+
+        print("Dataset created !")
     
     def __len__(self):
         return len(self.X)
     
     def __getitem__(self,idx):
-        return self.X[idx],self.y[idx]
+        return self.X[idx].view(12,1000),self.y[idx].view(12,1000)
 
 
 def get_snr_distribution(total_samples):
@@ -65,8 +67,6 @@ def get_snr_distribution(total_samples):
 
 def main():
 
-    print(torch.cuda.is_available())
-
     # Create the datasets if they don't exists
     if not(os.path.exists('data/records100/ecg100.npz') and os.path.exists('data/records500/ecg500.npz')) :
         data_100 = [
@@ -94,71 +94,73 @@ def main():
 
         print("Data saved.")
     
-    X_100 = np.load('data/records100/ecg100.npz')
+    if not(os.path.exists('data/100/clear.npz') and os.path.exists('data/100/noisy.npz')) :
+        X_100 = np.load('data/records100/ecg100.npz')
 
-    data_100 = X_100['data']
+        data_100 = X_100['data']
 
-    data_100_noisy = data_100.copy()
+        data_100_noisy = data_100.copy()
 
-    snr_list_100 = get_snr_distribution(data_100.shape[0])
+        snr_list_100 = get_snr_distribution(data_100.shape[0])
 
-    snr_counts_100 = Counter(snr_list_100)
-    print(len(snr_counts_100))
-    
+        snr_counts_100 = Counter(snr_list_100)
+        print(len(snr_counts_100))
+        
 
-    print("SNR levels repartition for datasets:")
-    print("\nFor dataset 100:")
-    for snr_level, count in sorted(snr_counts_100.items()):
-        print(f"SNR {snr_level} dB : {count} occurrences")
+        print("SNR levels repartition for datasets:")
+        print("\nFor dataset 100:")
+        for snr_level, count in sorted(snr_counts_100.items()):
+            print(f"SNR {snr_level} dB : {count} occurrences")
 
-    for i in range(len(snr_list_100)) :
-        if i % 1000 == 0 : print(i)
-        data_100_noisy[i] += noise.apply_noises(data_100_noisy[i],snr_dB=snr_list_100[i])
-    
-    # Splitting into train test val datasets
-    train_100_noisy, test_100_noisy, train_100_clear, test_100_clear = train_test_split(data_100_noisy, data_100, test_size=0.10, shuffle=True)
-    train_100_noisy, val_100_noisy, train_100_clear, val_100_clear= train_test_split(train_100_noisy,train_100_clear, test_size=len(test_100_clear), shuffle=True) 
-    
-    print(f"Clear : \nTrain 100: {train_100_clear.shape}, Val 100: {val_100_clear.shape}, Test 100: {test_100_clear.shape}")
-    print(f"Noisy : \nTrain 100: {train_100_noisy.shape}, Val 100: {val_100_noisy.shape}, Test 100: {test_100_noisy.shape}")
+        for i in range(len(snr_list_100)) :
+            if i % 1000 == 0 : print(i)
+            data_100_noisy[i] += src.noise.apply_noises(data_100_noisy[i],snr_dB=snr_list_100[i])
+        
+        # Splitting into train test val datasets
+        train_100_noisy, test_100_noisy, train_100_clear, test_100_clear = train_test_split(data_100_noisy, data_100, test_size=0.10, shuffle=True)
+        train_100_noisy, val_100_noisy, train_100_clear, val_100_clear= train_test_split(train_100_noisy,train_100_clear, test_size=len(test_100_clear), shuffle=True) 
+        
+        print(f"Clear : \nTrain 100: {train_100_clear.shape}, Val 100: {val_100_clear.shape}, Test 100: {test_100_clear.shape}")
+        print(f"Noisy : \nTrain 100: {train_100_noisy.shape}, Val 100: {val_100_noisy.shape}, Test 100: {test_100_noisy.shape}")
 
-    
-    # Save
-    os.makedirs("data/100", exist_ok=True)
-    os.makedirs("data/500", exist_ok=True)
+        
+        # Save
+        os.makedirs("data/100", exist_ok=True)
+        os.makedirs("data/500", exist_ok=True)
 
-    np.savez_compressed("data/100/noisy.npz", train=train_100_noisy,val=val_100_noisy,test=test_100_noisy)
-    np.savez_compressed("data/100/clear.npz", train=train_100_clear,val=val_100_clear,test=test_100_clear)
+        np.savez_compressed("data/100/noisy.npz", train=train_100_noisy,val=val_100_noisy,test=test_100_noisy)
+        np.savez_compressed("data/100/clear.npz", train=train_100_clear,val=val_100_clear,test=test_100_clear)
 
-    ''' Higher model data --use this version to create the 500 dataset
-    X_500 = np.load('data/records500/ecg500.npz')
-    data_500 = X_500['data']
-    data_500_noisy = data_500.copy()
+        ''' Higher model data --use this version to create the 500 dataset
+        X_500 = np.load('data/records500/ecg500.npz')
+        data_500 = X_500['data']
+        data_500_noisy = data_500.copy()
 
-    snr_list_500 = get_snr_distribution(data_500.shape[0])
-    snr_counts_500 = Counter(snr_list_500)
-    print(len(snr_counts_500))
+        snr_list_500 = get_snr_distribution(data_500.shape[0])
+        snr_counts_500 = Counter(snr_list_500)
+        print(len(snr_counts_500))
 
-    print("\nFor dataset 500:")
-    for snr_level, count in sorted(snr_counts_500.items()):
-        print(f"SNR {snr_level} dB : {count} occurrences")
+        print("\nFor dataset 500:")
+        for snr_level, count in sorted(snr_counts_500.items()):
+            print(f"SNR {snr_level} dB : {count} occurrences")
 
-    for i in range(len(snr_list_500)) :
-        if i % 1000 == 0 : print(i)
-        data_500_noisy[i] += noise.apply_noises(data_500_noisy[i],snr_dB=snr_list_500[i])
+        for i in range(len(snr_list_500)) :
+            if i % 1000 == 0 : print(i)
+            data_500_noisy[i] += noise.apply_noises(data_500_noisy[i],snr_dB=snr_list_500[i])
 
 
-    # Splitting into train test val datasets
-    train_500_noisy, test_500_noisy, train_500_clear, test_500_clear = train_test_split(data_500_noisy, data_500, test_size=0.10, shuffle=True)
-    train_500_noisy, val_500_noisy, train_500_clear, val_500_clear= train_test_split(train_500_noisy,train_500_clear, test_size=0.10, shuffle=True) 
-    
-    print(f"Clear : \nTrain 500: {train_500_clear.shape}, Val 500: {val_500_clear.shape}, Test 500: {test_500_clear.shape}")
-    print(f"Noisy : \nTrain 500: {train_500_noisy.shape}, Val 500: {val_500_noisy.shape}, Test 500: {test_500_noisy.shape}")
+        # Splitting into train test val datasets
+        train_500_noisy, test_500_noisy, train_500_clear, test_500_clear = train_test_split(data_500_noisy, data_500, test_size=0.10, shuffle=True)
+        train_500_noisy, val_500_noisy, train_500_clear, val_500_clear= train_test_split(train_500_noisy,train_500_clear, test_size=0.10, shuffle=True) 
+        
+        print(f"Clear : \nTrain 500: {train_500_clear.shape}, Val 500: {val_500_clear.shape}, Test 500: {test_500_clear.shape}")
+        print(f"Noisy : \nTrain 500: {train_500_noisy.shape}, Val 500: {val_500_noisy.shape}, Test 500: {test_500_noisy.shape}")
 
-    np.savez_compressed("data/500/noisy.npz", train=train_500_noisy,val=val_500_noisy,test=test_500_noisy)
-    np.savez_compressed("data/500/clear.npz", train=train_500_clear,val=val_500_clear,test=test_500_clear)
-    '''
-
+        np.savez_compressed("data/500/noisy.npz", train=train_500_noisy,val=val_500_noisy,test=test_500_noisy)
+        np.savez_compressed("data/500/clear.npz", train=train_500_clear,val=val_500_clear,test=test_500_clear)
+        '''
+    else : 
+        print("Dataset 100 exists.")
 
         
 if __name__ == '__main__' :

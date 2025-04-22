@@ -1,4 +1,5 @@
-from noise import calculate_snr
+from src.noise import calculate_snr
+import torch
 
 def evaluate(model,criterion,X,y):
     model.eval() # Evaluation mode
@@ -31,4 +32,15 @@ def evaluate(model,criterion,X,y):
     snr_y = snr_y_total / batch_size
 
     return loss, snr_x, snr_y # Compare snr of x noisy with denoisy x
+
+def train_batch(model,X,y,optimizer,criterion,**kwargs):
+    optimizer.zero_grad() # reset optimizer
+
+    y_pred = model(X) # prediction
+    loss = criterion(y_pred,y) # loss
+    loss.backward() # Compute gradients
+
+    # Gradient update
+    optimizer.step()
+    return loss.item()
 
