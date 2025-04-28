@@ -262,3 +262,17 @@ Training took 1:16 - Final test loss 0.0016
 	 -epochs :20 
 	 -learning_rate : 0.001  
 	 -Optimizer : adam  
+Training took 6:0 - Final test loss 0.0008
+ Parameters : 
+	 - layers : 2 
+	 --batch_size : 64
+	 -epochs :100 
+	 -learning_rate : 0.001  
+	 -Optimizer : adam  
+Training took 6:0 - Final test loss 0.0008
+ Parameters : 
+	 - layers : 2 
+	 --batch_size : 64
+	 -epochs :100 
+	 -learning_rate : 0.001  
+	 -Optimizer : adam  

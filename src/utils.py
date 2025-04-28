@@ -83,6 +83,7 @@ def train(dataset,X_val,y_val,X_test,y_test,nb_epochs,batch_size,optimizer,lr,la
         val_losses = []
         val_snr_x = []
         val_snr_y = []
+        min_snr = 3
 
     # Training time measure
     start = time.time()
@@ -146,7 +147,7 @@ def train(dataset,X_val,y_val,X_test,y_test,nb_epochs,batch_size,optimizer,lr,la
         plt.close()
 
         x_test = X_test[0]
-        y_pred = model(y_test[0].view(1,12,10*int(vrs)))
+        y_pred = model(x_test.view(1,12,10*int(vrs)))
         y_test = y_test[0]
 
         plot_signal(y_test.detach().cpu().numpy().T,
@@ -156,9 +157,10 @@ def train(dataset,X_val,y_val,X_test,y_test,nb_epochs,batch_size,optimizer,lr,la
         plot_signal(y_test.detach().cpu().numpy().T,
                     x_test.detach().cpu().numpy().T,
                     name = f'results/{vrs}/clear_noisy')
-        
+
         if mode == 'best' :
-            torch.save(model.state_dict(), "results/{vrs}/best_model_weights.pth")
+            torch.save(model.state_dict(),f'results/{vrs}/best_modelweights.pth')
+            
     
     return test_loss,test_snr_y
 
